@@ -42,13 +42,14 @@ export const signup = async (req: Request, res: Response) => {
       .single();
 
     if (error) {
-      console.log(error);
+  console.log("SUPABASE SIGNUP ERROR:", error);
 
-      return res.status(500).json({
-        success: false,
-        message: "Error creating user",
-      });
-    }
+  return res.status(500).json({
+    success: false,
+    message: error.message,
+    details: error,
+  });
+}
 
     const token = jwt.sign(
       {

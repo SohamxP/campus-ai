@@ -1,12 +1,22 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 
+const configuredBaseUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
+
 const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL;
+  configuredBaseUrl && !configuredBaseUrl.includes("YOUR_MAC_IP")
+    ? configuredBaseUrl
+    : "http://localhost:5001/api";
+
+if (__DEV__ && (!configuredBaseUrl || configuredBaseUrl.includes("YOUR_MAC_IP"))) {
+  console.warn(
+    "EXPO_PUBLIC_API_URL is missing or still uses YOUR_MAC_IP. iOS simulator may work with localhost, but a real phone needs your Mac IP address."
+  );
+}
 
 export const API = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 15000,
   headers: {
     "Content-Type": "application/json",
   },

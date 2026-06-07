@@ -1,5 +1,8 @@
 import { useState } from "react";
 import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -8,78 +11,181 @@ import {
   View,
 } from "react-native";
 
-const aiTools = [
+import { askCampusAI, CampusAIMode } from "@/api/ai";
+
+const aiTools: Array<{
+  title: string;
+  description: string;
+  mode: CampusAIMode;
+}> = [
   {
     title: "Assignment Planner",
     description: "Break a project or homework into smaller steps with deadlines.",
+    mode: "assignment_planner",
   },
   {
     title: "Note Summarizer",
-    description: "Turn long notes into key points, flashcards, and quiz questions.",
+    description: "Turn notes into key points, flashcards, and quiz questions.",
+    mode: "note_summarizer",
   },
   {
     title: "Resume Review",
-    description: "Improve project bullets and make your experience easier to explain.",
+    description: "Improve project bullets and make your experience clearer.",
+    mode: "resume_review",
   },
   {
     title: "Schedule Optimizer",
-    description: "Plan study blocks around classes, events, and campus commitments.",
+    description: "Plan study blocks around classes, events, and deadlines.",
+    mode: "schedule_optimizer",
   },
 ];
 
 export default function AIScreen() {
   const [prompt, setPrompt] = useState("");
+  const [selectedMode, setSelectedMode] =
+    useState<CampusAIMode>("assignment_planner");
+  const [answer, setAnswer] = useState("");
+  const [source, setSource] = useState<"openai" | "local" | "">("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  async function handleGenerate() {
+    try {
+      setError("");
+      setAnswer("");
+      setSource("");
+
+      if (!prompt.trim()) {
+        setError("Type a question first.");
+        return;
+      }
+
+      setIsLoading(true);
+
+      const data = await askCampusAI({
+        prompt: prompt.trim(),
+        mode: selectedMode,
+      });
+
+      setAnswer(data.answer);
+      setSource(data.source);
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to generate response";
+
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const selectedTool =
+    aiTools.find((tool) => tool.mode === selectedMode) || aiTools[0];
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <Text style={styles.kicker}>CampusAI Assistant</Text>
-        <Text style={styles.title}>
-          Ask for help, then connect it to campus life.
-        </Text>
-        <Text style={styles.subtitle}>
-          This screen is the future AI layer. Next, we will connect it to your
-          backend and OpenAI API.
-        </Text>
-      </View>
+    <KeyboardAvoidingView
+      style={styles.keyboardView}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+        <View style={styles.header}>
+          <Text style={styles.kicker}>CampusAI Assistant</Text>
+          <Text style={styles.title}>Ask for help and get a usable plan.</Text>
+          <Text style={styles.subtitle}>
+            Choose the type of help you need, enter your prompt, and CampusAI
+            will call your backend AI route.
+          </Text>
+        </View>
 
-      <View style={styles.askCard}>
-        <Text style={styles.cardTitle}>Ask CampusAI</Text>
+        <Text style={styles.sectionTitle}>Choose a tool</Text>
 
-        <TextInput
-          value={prompt}
-          onChangeText={setPrompt}
-          placeholder="Example: Help me plan my database project this week"
-          multiline
-          style={styles.input}
-          placeholderTextColor="#9CA3AF"
-        />
+        <View style={styles.toolList}>
+          {aiTools.map((tool) => {
+            const selected = selectedMode === tool.mode;
 
-        <TouchableOpacity style={styles.primaryButton} activeOpacity={0.85}>
-          <Text style={styles.primaryButtonText}>Generate Plan</Text>
-        </TouchableOpacity>
+            return (
+              <TouchableOpacity
+                key={tool.mode}
+                style={[styles.toolCard, selected && styles.toolCardSelected]}
+                activeOpacity={0.85}
+                onPress={() => setSelectedMode(tool.mode)}
+              >
+                <Text
+                  style={[
+                    styles.toolTitle,
+                    selected && styles.toolTitleSelected,
+                  ]}
+                >
+                  {tool.title}
+                </Text>
+                <Text
+                  style={[
+                    styles.toolDescription,
+                    selected && styles.toolDescriptionSelected,
+                  ]}
+                >
+                  {tool.description}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
 
-        <Text style={styles.helperText}>
-          For now this is UI only. In the next phase, this button will call
-          /api/ai.
-        </Text>
-      </View>
+        <View style={styles.askCard}>
+          <Text style={styles.cardTitle}>{selectedTool.title}</Text>
 
-      <Text style={styles.sectionTitle}>AI tools</Text>
+          <TextInput
+            value={prompt}
+            onChangeText={setPrompt}
+            placeholder="Example: Help me plan my database project this week"
+            multiline
+            style={styles.input}
+            placeholderTextColor="#9CA3AF"
+            textAlignVertical="top"
+          />
 
-      <View style={styles.toolList}>
-        {aiTools.map((tool) => (
-          <View key={tool.title} style={styles.toolCard}>
-            <Text style={styles.toolTitle}>{tool.title}</Text>
-            <Text style={styles.toolDescription}>{tool.description}</Text>
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+          <TouchableOpacity
+            style={[
+              styles.primaryButton,
+              isLoading && styles.primaryButtonDisabled,
+            ]}
+            activeOpacity={0.85}
+            onPress={handleGenerate}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.primaryButtonText}>Generate Response</Text>
+            )}
+          </TouchableOpacity>
+
+          {source ? (
+            <Text style={styles.sourceText}>
+              Source: {source === "openai" ? "OpenAI API" : "Local fallback"}
+            </Text>
+          ) : null}
+        </View>
+
+        {answer ? (
+          <View style={styles.answerCard}>
+            <Text style={styles.answerTitle}>CampusAI Response</Text>
+            <Text style={styles.answerText}>{answer}</Text>
           </View>
-        ))}
-      </View>
-    </ScrollView>
+        ) : null}
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  keyboardView: {
+    flex: 1,
+  },
   screen: {
     flex: 1,
     backgroundColor: "#F6F7FB",
@@ -112,49 +218,6 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: "#6B7280",
   },
-  askCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 24,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: "#ECEFF3",
-    marginBottom: 24,
-  },
-  cardTitle: {
-    fontSize: 20,
-    fontWeight: "900",
-    color: "#111827",
-    marginBottom: 12,
-  },
-  input: {
-    minHeight: 120,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRadius: 18,
-    padding: 14,
-    fontSize: 15,
-    color: "#111827",
-    textAlignVertical: "top",
-    backgroundColor: "#FAFAFA",
-  },
-  primaryButton: {
-    backgroundColor: "#2563EB",
-    borderRadius: 16,
-    paddingVertical: 14,
-    alignItems: "center",
-    marginTop: 14,
-  },
-  primaryButtonText: {
-    color: "#FFFFFF",
-    fontWeight: "900",
-    fontSize: 15,
-  },
-  helperText: {
-    color: "#6B7280",
-    fontSize: 13,
-    lineHeight: 18,
-    marginTop: 10,
-  },
   sectionTitle: {
     fontSize: 22,
     fontWeight: "900",
@@ -163,23 +226,104 @@ const styles = StyleSheet.create({
   },
   toolList: {
     gap: 12,
+    marginBottom: 20,
   },
   toolCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 20,
-    padding: 18,
+    padding: 16,
     borderWidth: 1,
     borderColor: "#ECEFF3",
+  },
+  toolCardSelected: {
+    backgroundColor: "#111827",
+    borderColor: "#111827",
   },
   toolTitle: {
     fontSize: 17,
     fontWeight: "900",
     color: "#111827",
   },
+  toolTitleSelected: {
+    color: "#FFFFFF",
+  },
   toolDescription: {
     fontSize: 14,
     color: "#6B7280",
     lineHeight: 20,
     marginTop: 6,
+  },
+  toolDescriptionSelected: {
+    color: "#D1D5DB",
+  },
+  askCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: "#ECEFF3",
+    marginBottom: 18,
+  },
+  cardTitle: {
+    fontSize: 20,
+    fontWeight: "900",
+    color: "#111827",
+    marginBottom: 12,
+  },
+  input: {
+    minHeight: 130,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderRadius: 18,
+    padding: 14,
+    fontSize: 15,
+    color: "#111827",
+    backgroundColor: "#FAFAFA",
+  },
+  errorText: {
+    color: "#DC2626",
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 10,
+    fontWeight: "700",
+  },
+  primaryButton: {
+    backgroundColor: "#2563EB",
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: "center",
+    marginTop: 14,
+  },
+  primaryButtonDisabled: {
+    opacity: 0.7,
+  },
+  primaryButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "900",
+    fontSize: 15,
+  },
+  sourceText: {
+    color: "#6B7280",
+    fontSize: 13,
+    marginTop: 10,
+    fontWeight: "700",
+  },
+  answerCard: {
+    backgroundColor: "#EAF2FF",
+    borderRadius: 24,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+  },
+  answerTitle: {
+    color: "#1E3A8A",
+    fontSize: 20,
+    fontWeight: "900",
+    marginBottom: 10,
+  },
+  answerText: {
+    color: "#1E3A8A",
+    fontSize: 15,
+    lineHeight: 23,
   },
 });

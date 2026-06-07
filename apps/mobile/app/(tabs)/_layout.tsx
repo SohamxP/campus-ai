@@ -1,80 +1,131 @@
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
-import { Stack } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
-import "react-native-reanimated";
+import { Redirect, Tabs } from "expo-router";
+import React from "react";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 
+import { HapticTab } from "@/components/haptic-tab";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useAuthStore } from "@/store/authStore";
 
-export default function RootLayout() {
+export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const loadAuth = useAuthStore((state) => state.loadAuth);
+  const theme = Colors[colorScheme ?? "light"];
 
-  useEffect(() => {
-    loadAuth();
-  }, [loadAuth]);
+  const token = useAuthStore((state) => state.token);
+  const isLoading = useAuthStore((state) => state.isLoading);
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingScreen}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  if (!token) {
+    return <Redirect href="/(auth)/login" />;
+  }
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+    <Tabs
+      screenOptions={{
+        tabBarActiveTintColor: theme.tint,
+        tabBarInactiveTintColor: theme.tabIconDefault,
+        headerShown: false,
+        tabBarButton: HapticTab,
+        tabBarStyle: {
+          borderTopWidth: 1,
+          borderTopColor: "#E5E7EB",
+          height: 88,
+          paddingTop: 8,
+          paddingBottom: 24,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: "700",
+        },
+      }}
+    >
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: "Home",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={26} name="house.fill" color={color} />
+          ),
+        }}
+      />
 
-        <Stack.Screen
-          name="events/[id]"
-          options={{
-            headerShown: true,
-            title: "Event Details",
-          }}
-        />
+      <Tabs.Screen
+        name="ai"
+        options={{
+          title: "AI",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={26} name="sparkles" color={color} />
+          ),
+        }}
+      />
 
-        <Stack.Screen
-          name="marketplace/[id]"
-          options={{
-            headerShown: true,
-            title: "Listing Details",
-          }}
-        />
+      <Tabs.Screen
+        name="events"
+        options={{
+          title: "Events",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={26} name="calendar" color={color} />
+          ),
+        }}
+      />
 
-        <Stack.Screen
-          name="marketplace/create"
-          options={{
-            headerShown: true,
-            title: "Create Listing",
-          }}
-        />
+      <Tabs.Screen
+        name="rides"
+        options={{
+          title: "Rides",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={26} name="car.fill" color={color} />
+          ),
+        }}
+      />
 
-        <Stack.Screen
-          name="chat/[id]"
-          options={{
-            headerShown: true,
-            title: "Chat",
-          }}
-        />
+      <Tabs.Screen
+        name="marketplace"
+        options={{
+          title: "Market",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={26} name="bag.fill" color={color} />
+          ),
+        }}
+      />
 
-        <Stack.Screen
-          name="settings/index"
-          options={{
-            headerShown: true,
-            title: "Settings",
-          }}
-        />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol
+              size={26}
+              name="person.crop.circle.fill"
+              color={color}
+            />
+          ),
+        }}
+      />
 
-        <Stack.Screen
-          name="modal"
-          options={{
-            presentation: "modal",
-            title: "Modal",
-          }}
-        />
-      </Stack>
-
-      <StatusBar style="auto" />
-    </ThemeProvider>
+      <Tabs.Screen
+        name="explore"
+        options={{
+          href: null,
+        }}
+      />
+    </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingScreen: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F6F7FB",
+  },
+});
