@@ -1,30 +1,31 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 
 import authRoutes from "./routes/authRoutes";
 import eventRoutes from "./routes/eventRoutes";
 import marketplaceRoutes from "./routes/marketplaceRoutes";
 import aiRoutes from "./routes/aiRoutes";
-
-dotenv.config();
+import { env, getEnvStatus } from "./config/env";
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+app.use(cors({ origin: true, credentials: true }));
+app.use(express.json({ limit: "1mb" }));
 
-app.get("/", (req: Request, res: Response) => {
+app.get("/", (_req: Request, res: Response) => {
   res.json({
     success: true,
     message: "CampusAI backend is running",
+    docs: "/api/health",
   });
 });
 
-app.get("/api/health", (req: Request, res: Response) => {
+app.get("/api/health", (_req: Request, res: Response) => {
   res.json({
     success: true,
     status: "healthy",
+    env: getEnvStatus(),
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -40,8 +41,6 @@ app.use((req: Request, res: Response) => {
   });
 });
 
-const PORT = Number(process.env.PORT) || 5001;
-
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`CampusAI backend running on http://0.0.0.0:${PORT}`);
+app.listen(env.port, "0.0.0.0", () => {
+  console.log(`CampusAI backend running on http://0.0.0.0:${env.port}`);
 });

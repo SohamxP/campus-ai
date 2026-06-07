@@ -10,7 +10,7 @@ const API_BASE_URL =
 
 if (__DEV__ && (!configuredBaseUrl || configuredBaseUrl.includes("YOUR_MAC_IP"))) {
   console.warn(
-    "EXPO_PUBLIC_API_URL is missing or still uses YOUR_MAC_IP. iOS simulator may work with localhost, but a real phone needs your Mac IP address."
+    "EXPO_PUBLIC_API_URL is missing or still uses YOUR_MAC_IP. Real phone needs your Mac IP address."
   );
 }
 
