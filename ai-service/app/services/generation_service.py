@@ -1,0 +1,63 @@
+import httpx
+
+from app.core_config import settings
+
+
+def generate_grounded_answer(
+    question: str,
+    chunks: list[dict],
+) -> str:
+    context_parts = []
+
+    for index, chunk in enumerate(chunks, start=1):
+        context_parts.append(
+            f"""[Source {index}]
+Document: {chunk["filename"]}
+Page: {chunk["page_number"]}
+Content:
+{chunk["content"]}
+"""
+        )
+
+    context = "\n\n".join(context_parts)
+
+    prompt = f"""
+You are CampusAI, an academic assistant.
+
+Answer the student's question using ONLY the course material provided below.
+
+Rules:
+1. Do not use outside knowledge.
+2. If the provided material does not contain enough information, clearly say so.
+3. Cite claims using source markers like [Source 1] or [Source 2].
+4. Do not invent citations.
+5. Be concise but educational.
+
+COURSE MATERIAL:
+
+{context}
+
+STUDENT QUESTION:
+{question}
+
+ANSWER:
+""".strip()
+
+    response = httpx.post(
+        f"{settings.ollama_base_url}/api/generate",
+        json={
+            "model": settings.ollama_model,
+            "prompt": prompt,
+            "stream": False,
+            "options": {
+                "temperature": 0.2,
+            },
+        },
+        timeout=120.0,
+    )
+
+    response.raise_for_status()
+
+    data = response.json()
+
+    return data["response"].strip()
