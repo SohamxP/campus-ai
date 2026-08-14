@@ -3,6 +3,7 @@ from pathlib import Path
 
 from app.db.retrieval_repository import (
     retrieve_hybrid_chunks,
+    retrieve_reranked_chunks,
     retrieve_vector_chunks,
 )
 from app.services.embedding_service import create_embedding
@@ -28,6 +29,7 @@ def evaluate(course_id: str):
 
     vector_scores = {1: [], 3: [], 5: []}
     hybrid_scores = {1: [], 3: [], 5: []}
+    reranked_scores = {1: [], 3: [], 5: []}
 
     print()
     print("CampusAI Retrieval Evaluation")
@@ -54,6 +56,13 @@ def evaluate(course_id: str):
             limit=5,
         )
 
+        reranked_results = retrieve_reranked_chunks(
+            course_id=course_id,
+            question=question,
+            query_embedding=embedding,
+            limit=5,
+        )
+
         for k in [1, 3, 5]:
             vector_scores[k].append(
                 recall_at_k(vector_results, expected_pages, k)
@@ -61,6 +70,10 @@ def evaluate(course_id: str):
 
             hybrid_scores[k].append(
                 recall_at_k(hybrid_results, expected_pages, k)
+            )
+
+            reranked_scores[k].append(
+                recall_at_k(reranked_results, expected_pages, k)
             )
 
         vector_pages = [
@@ -73,10 +86,16 @@ def evaluate(course_id: str):
             for result in hybrid_results
         ]
 
+        reranked_pages = [
+            result["page_number"]
+            for result in reranked_results
+        ]
+
         print(f"{number}. {question}")
-        print(f"   Expected: {expected_pages}")
-        print(f"   Vector:   {vector_pages}")
-        print(f"   Hybrid:   {hybrid_pages}")
+        print(f"   Expected:  {expected_pages}")
+        print(f"   Vector:    {vector_pages}")
+        print(f"   Hybrid:    {hybrid_pages}")
+        print(f"   Reranked:  {reranked_pages}")
         print()
 
     print("=" * 60)
@@ -91,6 +110,13 @@ def evaluate(course_id: str):
     print("Hybrid retrieval")
     for k in [1, 3, 5]:
         score = sum(hybrid_scores[k]) / len(hybrid_scores[k])
+        print(f"Recall@{k}: {score:.2%}")
+
+    print()
+
+    print("Hybrid + reranker")
+    for k in [1, 3, 5]:
+        score = sum(reranked_scores[k]) / len(reranked_scores[k])
         print(f"Recall@{k}: {score:.2%}")
 
 

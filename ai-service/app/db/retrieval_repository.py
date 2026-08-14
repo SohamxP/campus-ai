@@ -151,7 +151,7 @@ def retrieve_hybrid_chunks(
     query_embedding: list[float],
     limit: int = 5,
 ):
-    candidate_limit = max(limit * 4, 20)
+    candidate_limit = max(limit * 2, 20)
 
     vector_results = retrieve_vector_chunks(
         course_id=course_id,
@@ -181,5 +181,29 @@ def retrieve_similar_chunks(
     return retrieve_vector_chunks(
         course_id=course_id,
         query_embedding=query_embedding,
+        limit=limit,
+    )
+
+
+def retrieve_reranked_chunks(
+    course_id: str,
+    question: str,
+    query_embedding: list[float],
+    limit: int = 5,
+):
+    from app.services.reranker_service import rerank_chunks
+
+    candidate_limit = max(limit * 4, 20)
+
+    candidates = retrieve_hybrid_chunks(
+        course_id=course_id,
+        question=question,
+        query_embedding=query_embedding,
+        limit=candidate_limit,
+    )
+
+    return rerank_chunks(
+        question=question,
+        chunks=candidates,
         limit=limit,
     )
