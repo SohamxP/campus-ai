@@ -185,18 +185,46 @@ def _extract_quiz(data: dict[str, Any]) -> list[dict]:
 
 def generate_flashcards(
     chunks: list[dict],
-    count: int = 8,
+    count: int = 5,
 ) -> list[dict]:
-    context = _build_context(chunks)
+    flashcards = []
 
-    prompt = f"""
+    useful_chunks = [
+        chunk
+        for chunk in chunks
+        if len(chunk.get("content", "").strip()) > 80
+    ]
+
+    if not useful_chunks:
+        raise ValueError("No usable course material found.")
+
+    chunk_index = 0
+    attempts = 0
+    max_attempts = count * 4
+
+    while len(flashcards) < count and attempts < max_attempts:
+        attempts += 1
+
+        chunk = useful_chunks[
+            chunk_index % len(useful_chunks)
+        ]
+        chunk_index += 1
+
+        source_page = chunk["page_number"]
+        source_text = chunk["content"]
+
+        prompt = f"""
 You are CampusAI.
 
-Generate exactly {count} study flashcards using ONLY the course material below.
+Create EXACTLY ONE study flashcard using ONLY the
+course material below.
 
-Return ONLY JSON.
+SOURCE PAGE: {source_page}
 
-Required format:
+COURSE MATERIAL:
+{source_text}
+
+Return ONLY valid JSON in this exact structure:
 
 {{
   "flashcards": [
@@ -204,30 +232,71 @@ Required format:
       "front": "Question",
       "back": "Answer",
       "topic": "Short topic name",
-      "source_page": 1
+      "source_page": {source_page}
     }}
   ]
 }}
 
 Requirements:
-- Exactly {count} flashcards.
-- Use only supplied course material.
-- Every source_page must correspond to the material provided.
-- Keep answers concise and educational.
-- Do not include markdown.
-- Do not include commentary outside the JSON.
-
-COURSE MATERIAL:
-
-{context}
+- Return exactly one flashcard.
+- The front must be a clear study question.
+- The back must be a concise answer supported by the source.
+- Prefer conceptual understanding over damaged equation transcription.
+- Do not reconstruct corrupted equations.
+- If mathematical notation looks corrupted, ask a conceptual question instead.
+- Do not invent facts.
+- source_page must be {source_page}.
+- Return JSON only.
 """.strip()
 
-    data = _ollama_generate(prompt)
+        try:
+            data = _ollama_generate(prompt)
+            generated = _extract_flashcards(data)
 
-    flashcards = _extract_flashcards(data)
+            if len(generated) != 1:
+                raise ValueError(
+                    f"Expected 1 flashcard, got {len(generated)}"
+                )
 
-    return flashcards[:count]
+            card = generated[0]
 
+            if card["source_page"] != source_page:
+                raise ValueError(
+                    "Flashcard source page does not match supplied chunk."
+                )
+
+            normalized_front = card["front"].strip().lower()
+
+            if any(
+                existing["front"].strip().lower()
+                == normalized_front
+                for existing in flashcards
+            ):
+                raise ValueError(
+                    "Duplicate flashcard generated."
+                )
+
+            flashcards.append(card)
+
+            print(
+                f"Accepted flashcard "
+                f"{len(flashcards)}/{count} "
+                f"from page {source_page}"
+            )
+
+        except ValueError as exc:
+            print(
+                f"Rejected flashcard attempt {attempts}:",
+                str(exc),
+            )
+
+    if len(flashcards) < count:
+        raise ValueError(
+            f"Could only generate {len(flashcards)} valid "
+            f"flashcards after {attempts} attempts."
+        )
+
+    return flashcards
 
 def generate_quiz(
     chunks: list[dict],

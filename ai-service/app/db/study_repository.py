@@ -296,3 +296,21 @@ def get_mastery(course_id: str) -> list[dict]:
         }
         for row in rows
     ]
+
+
+def get_course_topics(course_id: str) -> list[str]:
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT name
+                FROM course_topics
+                WHERE course_id = %s
+                ORDER BY name
+                """,
+                (course_id,),
+            )
+
+            rows = cur.fetchall()
+
+    return [row[0] for row in rows]
