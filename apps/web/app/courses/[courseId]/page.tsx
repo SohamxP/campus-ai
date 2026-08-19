@@ -3,6 +3,10 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
+import FlashcardsPanel from "@/components/FlashcardsPanel";
+import ProgressPanel from "@/components/ProgressPanel";
+import QuizPanel from "@/components/QuizPanel";
+
 import {
   askCampusAI,
   Course,
@@ -13,9 +17,10 @@ import {
   uploadDocument,
 } from "@/lib/api";
 
+type Tab = "ask" | "flashcards" | "quiz" | "progress";
+
 export default function CoursePage() {
   const params = useParams();
-
   const courseId = params.courseId as string;
 
   const [course, setCourse] =
@@ -39,6 +44,9 @@ export default function CoursePage() {
 
   const [asking, setAsking] = useState(false);
   const [error, setError] = useState("");
+
+  const [activeTab, setActiveTab] =
+    useState<Tab>("ask");
 
   async function loadCourse() {
     try {
@@ -118,6 +126,28 @@ export default function CoursePage() {
       setAsking(false);
     }
   }
+
+  const tabs: {
+    id: Tab;
+    label: string;
+  }[] = [
+    {
+      id: "ask",
+      label: "Ask AI",
+    },
+    {
+      id: "flashcards",
+      label: "Flashcards",
+    },
+    {
+      id: "quiz",
+      label: "Quiz",
+    },
+    {
+      id: "progress",
+      label: "Progress",
+    },
+  ];
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
@@ -205,88 +235,137 @@ export default function CoursePage() {
             </section>
           </aside>
 
-          <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
-            <h2 className="text-xl font-semibold">
-              Ask CampusAI
-            </h2>
+          <div className="space-y-4">
+            <nav className="flex flex-wrap gap-2 rounded-2xl border border-zinc-800 bg-zinc-900 p-2">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() =>
+                    setActiveTab(tab.id)
+                  }
+                  className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
+                    activeTab === tab.id
+                      ? "bg-white text-black"
+                      : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
 
-            <p className="mt-2 text-sm text-zinc-400">
-              Answers are grounded in the documents
-              uploaded to this course.
-            </p>
+            <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+              {activeTab === "ask" && (
+                <>
+                  <h2 className="text-xl font-semibold">
+                    Ask CampusAI
+                  </h2>
 
-            <form
-              onSubmit={handleQuestion}
-              className="mt-6"
-            >
-              <textarea
-                value={question}
-                onChange={(event) =>
-                  setQuestion(event.target.value)
-                }
-                placeholder="Why can't gradient descent be used with the perceptron step function?"
-                rows={4}
-                className="w-full resize-none rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 outline-none focus:border-zinc-500"
-              />
+                  <p className="mt-2 text-sm text-zinc-400">
+                    Answers are grounded in the documents
+                    uploaded to this course.
+                  </p>
 
-              <button
-                disabled={asking}
-                className="mt-3 rounded-xl bg-white px-5 py-3 font-medium text-black disabled:opacity-50"
-              >
-                {asking
-                  ? "Thinking..."
-                  : "Ask CampusAI"}
-              </button>
-            </form>
+                  <form
+                    onSubmit={handleQuestion}
+                    className="mt-6"
+                  >
+                    <textarea
+                      value={question}
+                      onChange={(event) =>
+                        setQuestion(
+                          event.target.value,
+                        )
+                      }
+                      placeholder="Why can't gradient descent be used with the perceptron step function?"
+                      rows={4}
+                      className="w-full resize-none rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 outline-none focus:border-zinc-500"
+                    />
 
-            {answer && (
-              <div className="mt-8 border-t border-zinc-800 pt-8">
-                <h3 className="font-semibold">
-                  Answer
-                </h3>
+                    <button
+                      disabled={asking}
+                      className="mt-3 rounded-xl bg-white px-5 py-3 font-medium text-black disabled:opacity-50"
+                    >
+                      {asking
+                        ? "Thinking..."
+                        : "Ask CampusAI"}
+                    </button>
+                  </form>
 
-                <p className="mt-4 whitespace-pre-wrap leading-7 text-zinc-300">
-                  {answer}
-                </p>
+                  {answer && (
+                    <div className="mt-8 border-t border-zinc-800 pt-8">
+                      <h3 className="font-semibold">
+                        Answer
+                      </h3>
 
-                {sources.length > 0 && (
-                  <div className="mt-8">
-                    <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">
-                      Sources
-                    </h3>
+                      <p className="mt-4 whitespace-pre-wrap leading-7 text-zinc-300">
+                        {answer}
+                      </p>
 
-                    <div className="mt-3 space-y-2">
-                      {sources.map(
-                        (source, index) => (
-                          <div
-                            key={
-                              source.chunk_id
-                            }
-                            className="rounded-xl border border-zinc-800 bg-zinc-950 p-4"
-                          >
-                            <p className="text-sm">
-                              Source{" "}
-                              {index + 1}
-                            </p>
+                      {sources.length > 0 && (
+                        <div className="mt-8">
+                          <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">
+                            Sources
+                          </h3>
 
-                            <p className="mt-1 text-sm text-zinc-400">
-                              {
-                                source.filename
-                              }{" "}
-                              · Page{" "}
-                              {
-                                source.page_number
-                              }
-                            </p>
+                          <div className="mt-3 space-y-2">
+                            {sources.map(
+                              (
+                                source,
+                                index,
+                              ) => (
+                                <div
+                                  key={
+                                    source.chunk_id
+                                  }
+                                  className="rounded-xl border border-zinc-800 bg-zinc-950 p-4"
+                                >
+                                  <p className="text-sm">
+                                    Source{" "}
+                                    {index + 1}
+                                  </p>
+
+                                  <p className="mt-1 text-sm text-zinc-400">
+                                    {
+                                      source.filename
+                                    }{" "}
+                                    · Page{" "}
+                                    {
+                                      source.page_number
+                                    }
+                                  </p>
+                                </div>
+                              ),
+                            )}
                           </div>
-                        ),
+                        </div>
                       )}
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </section>
+                  )}
+                </>
+              )}
+
+              {activeTab ===
+                "flashcards" && (
+                <FlashcardsPanel
+                  courseId={courseId}
+                />
+              )}
+
+              {activeTab === "quiz" && (
+                <QuizPanel
+                  courseId={courseId}
+                />
+              )}
+
+              {activeTab ===
+                "progress" && (
+                <ProgressPanel
+                  courseId={courseId}
+                />
+              )}
+            </section>
+          </div>
         </div>
       </div>
     </main>
