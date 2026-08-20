@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 
 import FlashcardsPanel from "@/components/FlashcardsPanel";
 import ProgressPanel from "@/components/ProgressPanel";
@@ -153,19 +154,39 @@ export default function CoursePage() {
     <main className="min-h-screen bg-zinc-950 text-white">
       <div className="mx-auto max-w-6xl px-6 py-12">
         <header className="mb-10">
-          <p className="text-sm uppercase tracking-[0.2em] text-zinc-500">
-            CampusAI / Course
-          </p>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-sm text-zinc-500 transition hover:text-white"
+          >
+            ← Back to dashboard
+          </Link>
 
-          <h1 className="mt-3 text-4xl font-semibold">
-            {course?.name || "Loading..."}
-          </h1>
+          <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-sm uppercase tracking-[0.2em] text-zinc-500">
+                CampusAI / Course
+              </p>
 
-          {course?.code && (
-            <p className="mt-2 text-zinc-400">
-              {course.code}
-            </p>
-          )}
+              <h1 className="mt-3 text-4xl font-semibold tracking-tight">
+                {course?.name || "Loading..."}
+              </h1>
+
+              {course?.code && (
+                <p className="mt-2 text-zinc-400">
+                  {course.code}
+                </p>
+              )}
+            </div>
+
+            <div className="w-fit rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm">
+              <span className="font-medium text-white">
+                {documents.length}
+              </span>
+              <span className="ml-2 text-zinc-500">
+                {documents.length === 1 ? "document" : "documents"}
+              </span>
+            </div>
+          </div>
         </header>
 
         {error && (
@@ -236,7 +257,7 @@ export default function CoursePage() {
           </aside>
 
           <div className="space-y-4">
-            <nav className="flex flex-wrap gap-2 rounded-2xl border border-zinc-800 bg-zinc-900 p-2">
+            <nav className="flex flex-wrap gap-1 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-1.5 shadow-sm">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
@@ -245,7 +266,7 @@ export default function CoursePage() {
                   }
                   className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
                     activeTab === tab.id
-                      ? "bg-white text-black"
+                      ? "bg-white text-black shadow-sm"
                       : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
                   }`}
                 >
