@@ -314,3 +314,22 @@ def get_course_topics(course_id: str) -> list[str]:
             rows = cur.fetchall()
 
     return [row[0] for row in rows]
+
+
+def get_quiz_question_course_id(
+    question_id: str,
+) -> str | None:
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT course_id
+                FROM quiz_questions
+                WHERE id = %s
+                """,
+                (question_id,),
+            )
+
+            row = cur.fetchone()
+
+    return str(row[0]) if row else None

@@ -4,12 +4,11 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { createCourse } from "@/lib/api";
-
-const DEV_USER_ID =
-  "fed62f14-4e23-4ec2-809d-c026dad4cde1";
+import SignOutButton from "@/components/SignOutButton";
 
 export default function Home() {
   const router = useRouter();
+
 
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
@@ -30,7 +29,6 @@ export default function Home() {
       setError("");
 
       const course = await createCourse(
-        DEV_USER_ID,
         name.trim(),
         code.trim(),
       );
@@ -46,19 +44,23 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
       <div className="mx-auto max-w-5xl px-6 py-16">
-        <div className="mb-12">
-          <p className="mb-3 text-sm font-medium uppercase tracking-[0.2em] text-zinc-500">
-            CampusAI
-          </p>
+        <div className="mb-12 flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="mb-3 text-sm font-medium uppercase tracking-[0.2em] text-zinc-500">
+              CampusAI
+            </p>
 
-          <h1 className="text-5xl font-semibold tracking-tight">
-            Learn from your own course material.
-          </h1>
+            <h1 className="text-5xl font-semibold tracking-tight">
+              Learn from your own course material.
+            </h1>
 
-          <p className="mt-4 max-w-2xl text-lg text-zinc-400">
-            Upload lecture material, ask questions, and get
-            grounded answers with page-level sources.
-          </p>
+            <p className="mt-4 max-w-2xl text-lg text-zinc-400">
+              Upload lecture material, ask questions, and get
+              grounded answers with page-level sources.
+            </p>
+          </div>
+
+          <SignOutButton />
         </div>
 
         <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-8">
