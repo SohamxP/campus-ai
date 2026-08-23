@@ -1,8 +1,10 @@
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
+from app.auth.authorization import require_course_owner
+from app.auth.dependencies import get_current_user_id
 from app.db.retrieval_repository import (
     retrieve_hybrid_chunks,
     retrieve_reranked_chunks,
@@ -20,8 +22,23 @@ class RetrievalRequest(BaseModel):
     limit: int = Field(default=5, ge=1, le=10)
 
 
+def authorize_query(
+    request: RetrievalRequest,
+    user_id: str,
+):
+    require_course_owner(
+        str(request.course_id),
+        user_id,
+    )
+
+
 @router.post("/retrieve")
-def retrieve(request: RetrievalRequest):
+def retrieve(
+    request: RetrievalRequest,
+    user_id: str = Depends(get_current_user_id),
+):
+    authorize_query(request, user_id)
+
     query_embedding = create_embedding(request.question)
 
     chunks = retrieve_vector_chunks(
@@ -38,7 +55,12 @@ def retrieve(request: RetrievalRequest):
 
 
 @router.post("/retrieve-hybrid")
-def retrieve_hybrid(request: RetrievalRequest):
+def retrieve_hybrid(
+    request: RetrievalRequest,
+    user_id: str = Depends(get_current_user_id),
+):
+    authorize_query(request, user_id)
+
     query_embedding = create_embedding(request.question)
 
     chunks = retrieve_hybrid_chunks(
@@ -56,7 +78,12 @@ def retrieve_hybrid(request: RetrievalRequest):
 
 
 @router.post("/retrieve-reranked")
-def retrieve_reranked(request: RetrievalRequest):
+def retrieve_reranked(
+    request: RetrievalRequest,
+    user_id: str = Depends(get_current_user_id),
+):
+    authorize_query(request, user_id)
+
     query_embedding = create_embedding(request.question)
 
     chunks = retrieve_reranked_chunks(
@@ -74,7 +101,12 @@ def retrieve_reranked(request: RetrievalRequest):
 
 
 @router.post("/answer")
-def answer(request: RetrievalRequest):
+def answer(
+    request: RetrievalRequest,
+    user_id: str = Depends(get_current_user_id),
+):
+    authorize_query(request, user_id)
+
     query_embedding = create_embedding(request.question)
 
     chunks = retrieve_reranked_chunks(
@@ -103,7 +135,10 @@ def answer(request: RetrievalRequest):
             "filename": chunk["filename"],
             "page_number": chunk["page_number"],
             "rrf_score": round(chunk["rrf_score"], 6),
-            "reranker_score": round(chunk["reranker_score"], 6),
+            "reranker_score": round(
+                chunk["reranker_score"],
+                6,
+            ),
         }
         for chunk in chunks
     ]
