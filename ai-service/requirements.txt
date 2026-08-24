@@ -38,3 +38,4 @@ uvloop==0.22.1
 watchfiles==1.2.0
 websockets==17.1
 PyJWT==2.13.0
+fonttools==4.64.0
