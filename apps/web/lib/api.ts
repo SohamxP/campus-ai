@@ -136,6 +136,24 @@ export async function uploadDocument(
   return response.json();
 }
 
+export async function deleteDocument(
+  documentId: string,
+): Promise<void> {
+  const headers = await authHeaders();
+
+  const response = await fetch(
+    `${API_URL}/documents/${documentId}`,
+    {
+      method: "DELETE",
+      headers,
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to delete document");
+  }
+}
+
 export async function askCampusAI(
   courseId: string,
   question: string,

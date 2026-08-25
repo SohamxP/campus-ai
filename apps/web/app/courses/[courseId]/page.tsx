@@ -11,6 +11,7 @@ import QuizPanel from "@/components/QuizPanel";
 import {
   askCampusAI,
   Course,
+  deleteDocument,
   DocumentItem,
   getCourse,
   getDocuments,
@@ -49,6 +50,17 @@ export default function CoursePage() {
   const [activeTab, setActiveTab] =
     useState<Tab>("ask");
 
+  const readyDocumentCount = documents.filter(
+    (document) => document.status === "ready",
+  ).length;
+
+  const processingDocumentCount = documents.filter(
+    (document) => document.status === "processing",
+  ).length;
+
+  const hasProcessingDocuments =
+    processingDocumentCount > 0;
+
   async function loadCourse() {
     try {
       const [courseData, documentData] =
@@ -67,6 +79,31 @@ export default function CoursePage() {
   useEffect(() => {
     loadCourse();
   }, [courseId]);
+
+  useEffect(() => {
+    if (!hasProcessingDocuments) {
+      return;
+    }
+
+    const interval = window.setInterval(
+      async () => {
+        try {
+          const updatedDocuments =
+            await getDocuments(courseId);
+
+          setDocuments(updatedDocuments);
+        } catch {
+          // Keep the current UI state and retry
+          // on the next polling interval.
+        }
+      },
+      2000,
+    );
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [courseId, hasProcessingDocuments]);
 
   async function handleUpload(
     event: FormEvent<HTMLFormElement>,
@@ -96,6 +133,25 @@ export default function CoursePage() {
       setError("Could not upload document.");
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function handleDeleteDocument(
+    documentId: string,
+  ) {
+    try {
+      setError("");
+
+      await deleteDocument(documentId);
+
+      setDocuments((current) =>
+        current.filter(
+          (document) =>
+            document.id !== documentId,
+        ),
+      );
+    } catch {
+      setError("Could not delete document.");
     }
   }
 
@@ -180,11 +236,19 @@ export default function CoursePage() {
 
             <div className="w-fit rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm">
               <span className="font-medium text-white">
-                {documents.length}
+                {readyDocumentCount}
               </span>
               <span className="ml-2 text-zinc-500">
-                {documents.length === 1 ? "document" : "documents"}
+                {readyDocumentCount === 1
+                  ? "document"
+                  : "documents"}
               </span>
+
+              {processingDocumentCount > 0 && (
+                <span className="ml-2 text-amber-400">
+                  · {processingDocumentCount} processing
+                </span>
+              )}
             </div>
           </div>
         </header>
@@ -225,7 +289,7 @@ export default function CoursePage() {
                   className="w-full rounded-xl bg-white px-4 py-3 font-medium text-black disabled:opacity-40"
                 >
                   {uploading
-                    ? "Processing document..."
+                    ? "Uploading..."
                     : "Upload PDF"}
                 </button>
               </form>
@@ -242,14 +306,47 @@ export default function CoursePage() {
                     key={document.id}
                     className="rounded-xl border border-zinc-800 bg-zinc-950 p-4"
                   >
-                    <p className="truncate text-sm font-medium">
-                      {document.filename}
-                    </p>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">
+                          {document.filename}
+                        </p>
 
-                    <p className="mt-1 text-xs text-zinc-500">
-                      {document.page_count} pages ·{" "}
-                      {document.status}
-                    </p>
+                        {document.status === "ready" && (
+                          <p className="mt-1 text-xs text-zinc-500">
+                            {document.page_count} pages · ready
+                          </p>
+                        )}
+
+                        {document.status === "processing" && (
+                          <p className="mt-1 text-xs text-amber-400">
+                            Processing...
+                          </p>
+                        )}
+
+                        {document.status === "failed" && (
+                          <p className="mt-1 text-xs text-red-400">
+                            Processing failed
+                          </p>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleDeleteDocument(
+                            document.id,
+                          )
+                        }
+                        disabled={
+                          document.status ===
+                          "processing"
+                        }
+                        className="shrink-0 text-xs text-zinc-500 transition hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-30"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

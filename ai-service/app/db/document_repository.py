@@ -4,7 +4,6 @@ from app.db.database import get_connection
 def create_document(
     course_id: str,
     filename: str,
-    page_count: int,
 ) -> str:
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -16,13 +15,12 @@ def create_document(
                     page_count,
                     status
                 )
-                VALUES (%s, %s, %s, 'processing')
+                VALUES (%s, %s, 0, 'processing')
                 RETURNING id
                 """,
                 (
                     course_id,
                     filename,
-                    page_count,
                 ),
             )
 
@@ -33,13 +31,36 @@ def create_document(
     return str(document_id)
 
 
-def mark_document_ready(document_id: str):
+def mark_document_ready(
+    document_id: str,
+    page_count: int,
+):
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
                 UPDATE documents
-                SET status = 'ready'
+                SET
+                    status = 'ready',
+                    page_count = %s
+                WHERE id = %s
+                """,
+                (
+                    page_count,
+                    document_id,
+                ),
+            )
+
+        conn.commit()
+
+
+def mark_document_failed(document_id: str):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE documents
+                SET status = 'failed'
                 WHERE id = %s
                 """,
                 (document_id,),
