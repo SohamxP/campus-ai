@@ -1,0 +1,92 @@
+[
+  {
+    "question": "What is a single-layer neural network for binary classification?",
+    "expected_sources": [
+      {
+        "filename": "Single_Layer_Neural_Network.pdf",
+        "pages": [8, 9]
+      }
+    ]
+  },
+  {
+    "question": "How does a perceptron produce a binary prediction?",
+    "expected_sources": [
+      {
+        "filename": "Single_Layer_Neural_Network.pdf",
+        "pages": [8, 9]
+      }
+    ]
+  },
+  {
+    "question": "Why can't gradient descent be used with the perceptron step function?",
+    "expected_sources": [
+      {
+        "filename": "Single_Layer_Neural_Network.pdf",
+        "pages": [9]
+      }
+    ]
+  },
+  {
+    "question": "How are perceptron weights updated when a prediction is wrong?",
+    "expected_sources": [
+      {
+        "filename": "Single_Layer_Neural_Network.pdf",
+        "pages": [9, 10]
+      }
+    ]
+  },
+  {
+    "question": "What happens when the learning rate is too large during gradient descent?",
+    "expected_sources": [
+      {
+        "filename": "Single_Layer_Neural_Network.pdf",
+        "pages": [5]
+      }
+    ]
+  },
+  {
+    "question": "How do we know gradient descent has converged?",
+    "expected_sources": [
+      {
+        "filename": "Single_Layer_Neural_Network.pdf",
+        "pages": [3]
+      }
+    ]
+  },
+  {
+    "question": "Which activation function is used for binary logistic regression and why?",
+    "expected_sources": [
+      {
+        "filename": "Single_Layer_Neural_Network.pdf",
+        "pages": [14]
+      }
+    ]
+  },
+  {
+    "question": "What decision rule converts logistic regression probability into class 0 or class 1?",
+    "expected_sources": [
+      {
+        "filename": "Single_Layer_Neural_Network.pdf",
+        "pages": [14]
+      }
+    ]
+  },
+  {
+    "question": "Why is softmax preferred over sigmoid for multiclass classification?",
+    "expected_sources": [
+      {
+        "filename": "Single_Layer_Neural_Network.pdf",
+        "pages": [16, 17]
+      }
+    ]
+  },
+  {
+    "question": "How is the predicted class selected after applying softmax?",
+    "expected_sources": [
+      {
+        "filename": "Single_Layer_Neural_Network.pdf",
+        "pages": [18]
+      }
+    ]
+  }
+]

@@ -1,0 +1,30 @@
+CampusAI Retrieval Evaluation
+=============================
+
+Benchmark:
+- 42 labeled questions
+- 3 course documents
+- Filename + page-level relevance labels
+- Multiple valid sources supported where appropriate
+
+Vector retrieval
+Recall@1: 64.29%
+Recall@3: 83.33%
+Recall@5: 92.86%
+MRR:      0.745
+
+Hybrid retrieval
+Recall@1: 66.67%
+Recall@3: 85.71%
+Recall@5: 95.24%
+MRR:      0.769
+
+Hybrid + reranker
+Recall@1: 85.71%
+Recall@3: 92.86%
+Recall@5: 97.62%
+MRR:      0.900
+
+Improvement over vector-only retrieval:
+- Recall@1: +21.42 percentage points
+- MRR: 0.745 -> 0.900
