@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend tests
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ai-service
+
+    env:
+      SUPABASE_URL: https://example.supabase.co
+      SUPABASE_ANON_KEY: test-anon-key
+      DATABASE_URL: postgresql://user:password@localhost:5432/testdb
+      OLLAMA_BASE_URL: http://127.0.0.1:11434
+      OLLAMA_MODEL: llama3.2:3b
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: "pip"
+          cache-dependency-path: ai-service/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Compile Python source
+        run: |
+          python -m compileall app tests
+
+      - name: Run CI-safe tests
+        run: |
+          pytest -q \
+            --ignore=tests/test_database.py \
+            --ignore=tests/test_generation_service.py
+
+  web:
+    name: Web build
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: apps/web
+
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: test-anon-key
+      NEXT_PUBLIC_AI_API_URL: http://127.0.0.1:8001
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web app
+        run: npm run build
