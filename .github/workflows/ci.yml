@@ -19,8 +19,9 @@ jobs:
       SUPABASE_URL: https://example.supabase.co
       SUPABASE_ANON_KEY: test-anon-key
       DATABASE_URL: postgresql://user:password@localhost:5432/testdb
-      OLLAMA_BASE_URL: http://127.0.0.1:11434
-      OLLAMA_MODEL: llama3.2:3b
+      OPENAI_API_KEY: test-openai-key
+      OPENAI_MODEL: gpt-5.6-luna
+      FRONTEND_URL: http://localhost:3000
 
     steps:
       - name: Check out repository
@@ -45,8 +46,7 @@ jobs:
       - name: Run CI-safe tests
         run: |
           pytest -q \
-            --ignore=tests/test_database.py \
-            --ignore=tests/test_generation_service.py
+            --ignore=tests/test_database.py
 
   web:
     name: Web build

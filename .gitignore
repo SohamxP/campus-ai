@@ -16,3 +16,5 @@ __pycache__/
 # Next.js local env
 apps/web/.env.local
 *.pyc
+
+ai-service/.venv/

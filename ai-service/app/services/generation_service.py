@@ -1,6 +1,11 @@
-import httpx
+from openai import OpenAI
 
 from app.core_config import settings
+
+
+client = OpenAI(
+    api_key=settings.openai_api_key,
+)
 
 
 def generate_grounded_answer(
@@ -43,21 +48,19 @@ STUDENT QUESTION:
 ANSWER:
 """.strip()
 
-    response = httpx.post(
-        f"{settings.ollama_base_url}/api/generate",
-        json={
-            "model": settings.ollama_model,
-            "prompt": prompt,
-            "stream": False,
-            "options": {
-                "temperature": 0.2,
-            },
+    response = client.responses.create(
+        model=settings.openai_model,
+        input=prompt,
+        reasoning={
+            "effort": "none",
         },
-        timeout=120.0,
     )
 
-    response.raise_for_status()
+    answer = response.output_text.strip()
 
-    data = response.json()
+    if not answer:
+        raise RuntimeError(
+            "OpenAI returned an empty response."
+        )
 
-    return data["response"].strip()
+    return answer
