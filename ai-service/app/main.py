@@ -6,6 +6,7 @@ from app.api.documents import router as documents_router
 from app.api.health import router as health_router
 from app.api.query import router as query_router
 from app.api.study import router as study_router
+from app.core_config import settings
 
 app = FastAPI(
     title="CampusAI AI Service",
@@ -17,6 +18,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        settings.frontend_url,
     ],
     allow_credentials=True,
     allow_methods=["*"],

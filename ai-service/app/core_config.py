@@ -6,8 +6,10 @@ class Settings(BaseSettings):
     supabase_anon_key: str
     database_url: str
 
-    ollama_base_url: str = "http://127.0.0.1:11434"
-    ollama_model: str = "llama3.2:3b"
+    openai_api_key: str
+    openai_model: str = "gpt-5.6-luna"
+
+    frontend_url: str = "http://localhost:3000"
 
     model_config = SettingsConfigDict(
         env_file=".env",
