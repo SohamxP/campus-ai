@@ -1,4 +1,4 @@
-from openai import OpenAI
+from openai import OpenAI, OpenAIError
 
 from app.core_config import settings
 
@@ -6,6 +6,30 @@ from app.core_config import settings
 client = OpenAI(
     api_key=settings.openai_api_key,
 )
+
+
+def _extractive_fallback(
+    chunks: list[dict],
+) -> str:
+    if not chunks:
+        return (
+            "I could not find relevant course material "
+            "for this question."
+        )
+
+    passages = []
+
+    for index, chunk in enumerate(
+        chunks[:3],
+        start=1,
+    ):
+        content = chunk["content"].strip()
+
+        passages.append(
+            f"{content} [Source {index}]"
+        )
+
+    return "\n\n".join(passages)
 
 
 def generate_grounded_answer(
@@ -48,19 +72,21 @@ STUDENT QUESTION:
 ANSWER:
 """.strip()
 
-    response = client.responses.create(
-        model=settings.openai_model,
-        input=prompt,
-        reasoning={
-            "effort": "none",
-        },
-    )
-
-    answer = response.output_text.strip()
-
-    if not answer:
-        raise RuntimeError(
-            "OpenAI returned an empty response."
+    try:
+        response = client.responses.create(
+            model=settings.openai_model,
+            input=prompt,
+            reasoning={
+                "effort": "none",
+            },
         )
 
-    return answer
+        answer = response.output_text.strip()
+
+        if answer:
+            return answer
+
+    except OpenAIError:
+        pass
+
+    return _extractive_fallback(chunks)
