@@ -1,19 +1,64 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import {
+  FormEvent,
+  useEffect,
+  useState,
+} from "react";
 import { useRouter } from "next/navigation";
 
 import { createCourse } from "@/lib/api";
+import { supabase } from "@/lib/supabase";
 import SignOutButton from "@/components/SignOutButton";
 
 export default function Home() {
   const router = useRouter();
 
+  const [checkingAuth, setCheckingAuth] =
+    useState(true);
 
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    async function checkAuth() {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!active) {
+        return;
+      }
+
+      if (!session) {
+        router.replace("/auth");
+        return;
+      }
+
+      setCheckingAuth(false);
+    }
+
+    checkAuth();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (!session) {
+          router.replace("/auth");
+        }
+      },
+    );
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, [router]);
 
   async function handleSubmit(
     event: FormEvent<HTMLFormElement>,
@@ -39,6 +84,14 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (checkingAuth) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-zinc-950 text-zinc-400">
+        Checking session...
+      </main>
+    );
   }
 
   return (
