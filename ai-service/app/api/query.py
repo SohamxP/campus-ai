@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 
 from app.db.retrieval_repository import (
     retrieve_hybrid_chunks,
+    retrieve_reranked_chunks,
     retrieve_vector_chunks,
 )
 from app.services.embedding_service import create_embedding
@@ -54,11 +55,29 @@ def retrieve_hybrid(request: RetrievalRequest):
     }
 
 
+@router.post("/retrieve-reranked")
+def retrieve_reranked(request: RetrievalRequest):
+    query_embedding = create_embedding(request.question)
+
+    chunks = retrieve_reranked_chunks(
+        course_id=str(request.course_id),
+        question=request.question,
+        query_embedding=query_embedding,
+        limit=request.limit,
+    )
+
+    return {
+        "retrieval_type": "hybrid_reranked",
+        "question": request.question,
+        "results": chunks,
+    }
+
+
 @router.post("/answer")
 def answer(request: RetrievalRequest):
     query_embedding = create_embedding(request.question)
 
-    chunks = retrieve_hybrid_chunks(
+    chunks = retrieve_reranked_chunks(
         course_id=str(request.course_id),
         question=request.question,
         query_embedding=query_embedding,
@@ -84,6 +103,7 @@ def answer(request: RetrievalRequest):
             "filename": chunk["filename"],
             "page_number": chunk["page_number"],
             "rrf_score": round(chunk["rrf_score"], 6),
+            "reranker_score": round(chunk["reranker_score"], 6),
         }
         for chunk in chunks
     ]
