@@ -1,8 +1,9 @@
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from app.auth.dependencies import get_current_user_id
 from app.db.course_repository import (
     create_course,
     delete_course,
@@ -15,32 +16,17 @@ router = APIRouter(prefix="/courses", tags=["courses"])
 
 
 class CreateCourseRequest(BaseModel):
-    user_id: UUID
     name: str = Field(min_length=1, max_length=120)
     code: str | None = Field(default=None, max_length=40)
 
 
-@router.post("")
-def create(request: CreateCourseRequest):
-    return create_course(
-        user_id=str(request.user_id),
-        name=request.name.strip(),
-        code=request.code.strip() if request.code else None,
-    )
-
-
-@router.get("")
-def get_courses(user_id: UUID):
-    return {
-        "courses": list_courses(str(user_id)),
-    }
-
-
-@router.get("/{course_id}")
-def get(course_id: UUID):
+def require_owned_course(
+    course_id: UUID,
+    user_id: str,
+) -> dict:
     course = get_course(str(course_id))
 
-    if course is None:
+    if course is None or course["user_id"] != user_id:
         raise HTTPException(
             status_code=404,
             detail="Course not found.",
@@ -49,15 +35,47 @@ def get(course_id: UUID):
     return course
 
 
-@router.get("/{course_id}/documents")
-def documents(course_id: UUID):
-    course = get_course(str(course_id))
+@router.post("")
+def create(
+    request: CreateCourseRequest,
+    user_id: str = Depends(get_current_user_id),
+):
+    return create_course(
+        user_id=user_id,
+        name=request.name.strip(),
+        code=request.code.strip() if request.code else None,
+    )
 
-    if course is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Course not found.",
-        )
+
+@router.get("")
+def get_courses(
+    user_id: str = Depends(get_current_user_id),
+):
+    return {
+        "courses": list_courses(user_id),
+    }
+
+
+@router.get("/{course_id}")
+def get(
+    course_id: UUID,
+    user_id: str = Depends(get_current_user_id),
+):
+    return require_owned_course(
+        course_id,
+        user_id,
+    )
+
+
+@router.get("/{course_id}/documents")
+def documents(
+    course_id: UUID,
+    user_id: str = Depends(get_current_user_id),
+):
+    require_owned_course(
+        course_id,
+        user_id,
+    )
 
     return {
         "course_id": str(course_id),
@@ -68,7 +86,15 @@ def documents(course_id: UUID):
 
 
 @router.delete("/{course_id}")
-def remove(course_id: UUID):
+def remove(
+    course_id: UUID,
+    user_id: str = Depends(get_current_user_id),
+):
+    require_owned_course(
+        course_id,
+        user_id,
+    )
+
     deleted = delete_course(str(course_id))
 
     if not deleted:
