@@ -139,3 +139,149 @@ export async function askCampusAI(
 
   return response.json();
 }
+
+export type Flashcard = {
+  id?: string;
+  front: string;
+  back: string;
+  topic: string;
+  source_page: number;
+};
+
+export type QuizQuestion = {
+  id: string;
+  question: string;
+  options: string[];
+  explanation: string;
+  topic: string;
+  source_page: number;
+};
+
+export type QuizAnswerResult = {
+  is_correct: boolean;
+  correct_answer: string;
+  explanation: string;
+  topic: string;
+};
+
+export type MasteryItem = {
+  topic: string;
+  attempts: number;
+  correct: number;
+  mastery_score: number;
+};
+
+export async function generateFlashcards(
+  courseId: string,
+  count = 5,
+): Promise<Flashcard[]> {
+  const response = await fetch(
+    `${API_URL}/courses/${courseId}/flashcards/generate`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ count }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to generate flashcards.");
+  }
+
+  const data = await response.json();
+  return data.flashcards;
+}
+
+export async function getFlashcards(
+  courseId: string,
+): Promise<Flashcard[]> {
+  const response = await fetch(
+    `${API_URL}/courses/${courseId}/flashcards`,
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to load flashcards.");
+  }
+
+  const data = await response.json();
+  return data.flashcards;
+}
+
+export async function generateQuiz(
+  courseId: string,
+  count = 5,
+): Promise<QuizQuestion[]> {
+  const response = await fetch(
+    `${API_URL}/courses/${courseId}/quiz/generate`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ count }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to generate quiz.");
+  }
+
+  const data = await response.json();
+  return data.questions;
+}
+
+export async function getQuiz(
+  courseId: string,
+): Promise<QuizQuestion[]> {
+  const response = await fetch(
+    `${API_URL}/courses/${courseId}/quiz`,
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to load quiz.");
+  }
+
+  const data = await response.json();
+  return data.questions;
+}
+
+export async function submitQuizAnswer(
+  questionId: string,
+  selectedAnswer: string,
+): Promise<QuizAnswerResult> {
+  const response = await fetch(
+    `${API_URL}/quiz/${questionId}/answer`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        selected_answer: selectedAnswer,
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to submit quiz answer.");
+  }
+
+  return response.json();
+}
+
+export async function getMastery(
+  courseId: string,
+): Promise<MasteryItem[]> {
+  const response = await fetch(
+    `${API_URL}/courses/${courseId}/mastery`,
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to load mastery data.");
+  }
+
+  const data = await response.json();
+  return data.mastery;
+}
