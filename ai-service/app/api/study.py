@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from app.db.course_repository import get_course
 from app.db.study_repository import (
     get_course_chunks,
+    get_course_topics,
     get_mastery,
     list_flashcards,
     list_quiz_questions,
@@ -13,6 +14,8 @@ from app.db.study_repository import (
     save_quiz_questions,
     submit_quiz_answer,
 )
+from app.services.topic_service import normalize_topic
+
 from app.services.study_service import (
     generate_flashcards,
     generate_quiz,
@@ -95,6 +98,16 @@ def create_quiz(
         chunks,
         request.count,
     )
+
+    canonical_topics = get_course_topics(
+        str(course_id)
+    )
+
+    for question in questions:
+        question["topic"] = normalize_topic(
+            question["topic"],
+            canonical_topics,
+        )
 
     saved = save_quiz_questions(
         str(course_id),
