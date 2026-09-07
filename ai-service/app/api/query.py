@@ -3,7 +3,10 @@ from uuid import UUID
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
-from app.db.retrieval_repository import retrieve_similar_chunks
+from app.db.retrieval_repository import (
+    retrieve_hybrid_chunks,
+    retrieve_vector_chunks,
+)
 from app.services.embedding_service import create_embedding
 from app.services.generation_service import generate_grounded_answer
 
@@ -16,25 +19,36 @@ class RetrievalRequest(BaseModel):
     limit: int = Field(default=5, ge=1, le=10)
 
 
-class Source(BaseModel):
-    chunk_id: str
-    document_id: str
-    filename: str
-    page_number: int
-    similarity: float
-
-
 @router.post("/retrieve")
 def retrieve(request: RetrievalRequest):
     query_embedding = create_embedding(request.question)
 
-    chunks = retrieve_similar_chunks(
+    chunks = retrieve_vector_chunks(
         course_id=str(request.course_id),
         query_embedding=query_embedding,
         limit=request.limit,
     )
 
     return {
+        "retrieval_type": "vector",
+        "question": request.question,
+        "results": chunks,
+    }
+
+
+@router.post("/retrieve-hybrid")
+def retrieve_hybrid(request: RetrievalRequest):
+    query_embedding = create_embedding(request.question)
+
+    chunks = retrieve_hybrid_chunks(
+        course_id=str(request.course_id),
+        question=request.question,
+        query_embedding=query_embedding,
+        limit=request.limit,
+    )
+
+    return {
+        "retrieval_type": "hybrid",
         "question": request.question,
         "results": chunks,
     }
@@ -44,8 +58,9 @@ def retrieve(request: RetrievalRequest):
 def answer(request: RetrievalRequest):
     query_embedding = create_embedding(request.question)
 
-    chunks = retrieve_similar_chunks(
+    chunks = retrieve_hybrid_chunks(
         course_id=str(request.course_id),
+        question=request.question,
         query_embedding=query_embedding,
         limit=request.limit,
     )
@@ -68,7 +83,7 @@ def answer(request: RetrievalRequest):
             "document_id": chunk["document_id"],
             "filename": chunk["filename"],
             "page_number": chunk["page_number"],
-            "similarity": round(chunk["similarity"], 4),
+            "rrf_score": round(chunk["rrf_score"], 6),
         }
         for chunk in chunks
     ]
