@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.courses import router as courses_router
 from app.api.documents import router as documents_router
@@ -7,7 +8,18 @@ from app.api.query import router as query_router
 
 app = FastAPI(
     title="CampusAI AI Service",
-    version="0.2.0",
+    version="0.3.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(health_router)
@@ -20,6 +32,6 @@ app.include_router(query_router)
 def root():
     return {
         "service": "CampusAI AI Service",
-        "version": "0.2.0",
+        "version": "0.3.0",
         "status": "running",
     }

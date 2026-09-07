@@ -12,3 +12,6 @@ dist
 __pycache__/
 *.py[cod]
 .pytest_cache/
+
+# Next.js local env
+apps/web/.env.local
