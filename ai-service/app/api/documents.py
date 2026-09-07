@@ -1,14 +1,22 @@
 from uuid import UUID
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    HTTPException,
+    UploadFile,
+)
 
+from app.auth.authorization import require_course_owner
+from app.auth.dependencies import get_current_user_id
 from app.db.chunk_repository import insert_chunks
-from app.db.course_repository import get_course
 from app.db.document_repository import (
     create_document,
     delete_document,
     mark_document_ready,
 )
+from app.db.database import get_connection
 from app.services.embedding_service import create_embedding
 from app.services.pdf_service import (
     chunk_pdf_pages,
@@ -26,9 +34,29 @@ def validate_pdf(file: UploadFile):
         )
 
 
+def get_document_course_id(
+    document_id: str,
+) -> str | None:
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT course_id
+                FROM documents
+                WHERE id = %s
+                """,
+                (document_id,),
+            )
+
+            row = cur.fetchone()
+
+    return str(row[0]) if row else None
+
+
 @router.post("/documents/preview")
 async def preview_document(
     file: UploadFile = File(...),
+    user_id: str = Depends(get_current_user_id),
 ):
     validate_pdf(file)
 
@@ -55,16 +83,14 @@ async def preview_document(
 async def ingest_document(
     course_id: UUID,
     file: UploadFile = File(...),
+    user_id: str = Depends(get_current_user_id),
 ):
     validate_pdf(file)
 
-    course = get_course(str(course_id))
-
-    if course is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Course not found.",
-        )
+    require_course_owner(
+        str(course_id),
+        user_id,
+    )
 
     file_bytes = await file.read()
 
@@ -120,7 +146,25 @@ async def ingest_document(
 
 
 @router.delete("/documents/{document_id}")
-def remove_document(document_id: UUID):
+def remove_document(
+    document_id: UUID,
+    user_id: str = Depends(get_current_user_id),
+):
+    course_id = get_document_course_id(
+        str(document_id)
+    )
+
+    if course_id is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Document not found.",
+        )
+
+    require_course_owner(
+        course_id,
+        user_id,
+    )
+
     deleted = delete_document(str(document_id))
 
     if not deleted:

@@ -1,6 +1,22 @@
+import { supabase } from "@/lib/supabase";
+
 const API_URL =
   process.env.NEXT_PUBLIC_AI_API_URL ||
   "http://127.0.0.1:8001";
+
+async function authHeaders(): Promise<Record<string, string>> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session?.access_token) {
+    return {};
+  }
+
+  return {
+    Authorization: `Bearer ${session.access_token}`,
+  };
+}
 
 export type Course = {
   id: string;
@@ -29,17 +45,18 @@ export type Source = {
 };
 
 export async function createCourse(
-  userId: string,
   name: string,
   code: string,
 ): Promise<Course> {
+  const headers = await authHeaders();
+
   const response = await fetch(`${API_URL}/courses`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...headers,
     },
     body: JSON.stringify({
-      user_id: userId,
       name,
       code: code || null,
     }),
@@ -55,10 +72,13 @@ export async function createCourse(
 export async function getCourse(
   courseId: string,
 ): Promise<Course> {
+  const headers = await authHeaders();
+
   const response = await fetch(
     `${API_URL}/courses/${courseId}`,
     {
       cache: "no-store",
+      headers,
     },
   );
 
@@ -72,10 +92,13 @@ export async function getCourse(
 export async function getDocuments(
   courseId: string,
 ): Promise<DocumentItem[]> {
+  const headers = await authHeaders();
+
   const response = await fetch(
     `${API_URL}/courses/${courseId}/documents`,
     {
       cache: "no-store",
+      headers,
     },
   );
 
@@ -95,10 +118,13 @@ export async function uploadDocument(
   const formData = new FormData();
   formData.append("file", file);
 
+  const headers = await authHeaders();
+
   const response = await fetch(
     `${API_URL}/courses/${courseId}/documents`,
     {
       method: "POST",
+      headers,
       body: formData,
     },
   );
@@ -118,12 +144,15 @@ export async function askCampusAI(
   answer: string;
   sources: Source[];
 }> {
+  const headers = await authHeaders();
+
   const response = await fetch(
     `${API_URL}/query/answer`,
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...headers,
       },
       body: JSON.stringify({
         course_id: courseId,
@@ -175,12 +204,15 @@ export async function generateFlashcards(
   courseId: string,
   count = 5,
 ): Promise<Flashcard[]> {
+  const headers = await authHeaders();
+
   const response = await fetch(
     `${API_URL}/courses/${courseId}/flashcards/generate`,
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...headers,
       },
       body: JSON.stringify({ count }),
     },
@@ -197,8 +229,13 @@ export async function generateFlashcards(
 export async function getFlashcards(
   courseId: string,
 ): Promise<Flashcard[]> {
+  const headers = await authHeaders();
+
   const response = await fetch(
     `${API_URL}/courses/${courseId}/flashcards`,
+    {
+      headers,
+    },
   );
 
   if (!response.ok) {
@@ -213,12 +250,15 @@ export async function generateQuiz(
   courseId: string,
   count = 5,
 ): Promise<QuizQuestion[]> {
+  const headers = await authHeaders();
+
   const response = await fetch(
     `${API_URL}/courses/${courseId}/quiz/generate`,
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...headers,
       },
       body: JSON.stringify({ count }),
     },
@@ -235,8 +275,13 @@ export async function generateQuiz(
 export async function getQuiz(
   courseId: string,
 ): Promise<QuizQuestion[]> {
+  const headers = await authHeaders();
+
   const response = await fetch(
     `${API_URL}/courses/${courseId}/quiz`,
+    {
+      headers,
+    },
   );
 
   if (!response.ok) {
@@ -251,12 +296,15 @@ export async function submitQuizAnswer(
   questionId: string,
   selectedAnswer: string,
 ): Promise<QuizAnswerResult> {
+  const headers = await authHeaders();
+
   const response = await fetch(
     `${API_URL}/quiz/${questionId}/answer`,
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...headers,
       },
       body: JSON.stringify({
         selected_answer: selectedAnswer,
@@ -274,8 +322,13 @@ export async function submitQuizAnswer(
 export async function getMastery(
   courseId: string,
 ): Promise<MasteryItem[]> {
+  const headers = await authHeaders();
+
   const response = await fetch(
     `${API_URL}/courses/${courseId}/mastery`,
+    {
+      headers,
+    },
   );
 
   if (!response.ok) {

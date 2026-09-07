@@ -1,25 +1,26 @@
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from app.db.course_repository import get_course
+from app.auth.authorization import require_course_owner
+from app.auth.dependencies import get_current_user_id
 from app.db.study_repository import (
     get_course_chunks,
     get_course_topics,
     get_mastery,
+    get_quiz_question_course_id,
     list_flashcards,
     list_quiz_questions,
     save_flashcards,
     save_quiz_questions,
     submit_quiz_answer,
 )
-from app.services.topic_service import normalize_topic
-
 from app.services.study_service import (
     generate_flashcards,
     generate_quiz,
 )
+from app.services.topic_service import normalize_topic
 
 router = APIRouter(tags=["study"])
 
@@ -36,12 +37,12 @@ class AnswerRequest(BaseModel):
 def create_flashcards(
     course_id: UUID,
     request: GenerateRequest,
+    user_id: str = Depends(get_current_user_id),
 ):
-    if get_course(str(course_id)) is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Course not found.",
-        )
+    require_course_owner(
+        str(course_id),
+        user_id,
+    )
 
     chunks = get_course_chunks(str(course_id), limit=30)
 
@@ -67,7 +68,15 @@ def create_flashcards(
 
 
 @router.get("/courses/{course_id}/flashcards")
-def get_flashcards(course_id: UUID):
+def get_flashcards(
+    course_id: UUID,
+    user_id: str = Depends(get_current_user_id),
+):
+    require_course_owner(
+        str(course_id),
+        user_id,
+    )
+
     return {
         "flashcards": list_flashcards(
             str(course_id)
@@ -79,12 +88,12 @@ def get_flashcards(course_id: UUID):
 def create_quiz(
     course_id: UUID,
     request: GenerateRequest,
+    user_id: str = Depends(get_current_user_id),
 ):
-    if get_course(str(course_id)) is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Course not found.",
-        )
+    require_course_owner(
+        str(course_id),
+        user_id,
+    )
 
     chunks = get_course_chunks(str(course_id), limit=30)
 
@@ -120,7 +129,15 @@ def create_quiz(
 
 
 @router.get("/courses/{course_id}/quiz")
-def get_quiz(course_id: UUID):
+def get_quiz(
+    course_id: UUID,
+    user_id: str = Depends(get_current_user_id),
+):
+    require_course_owner(
+        str(course_id),
+        user_id,
+    )
+
     return {
         "questions": list_quiz_questions(
             str(course_id)
@@ -132,7 +149,23 @@ def get_quiz(course_id: UUID):
 def answer_question(
     question_id: UUID,
     request: AnswerRequest,
+    user_id: str = Depends(get_current_user_id),
 ):
+    course_id = get_quiz_question_course_id(
+        str(question_id)
+    )
+
+    if course_id is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Quiz question not found.",
+        )
+
+    require_course_owner(
+        course_id,
+        user_id,
+    )
+
     result = submit_quiz_answer(
         str(question_id),
         request.selected_answer,
@@ -148,7 +181,15 @@ def answer_question(
 
 
 @router.get("/courses/{course_id}/mastery")
-def mastery(course_id: UUID):
+def mastery(
+    course_id: UUID,
+    user_id: str = Depends(get_current_user_id),
+):
+    require_course_owner(
+        str(course_id),
+        user_id,
+    )
+
     return {
         "mastery": get_mastery(
             str(course_id)
