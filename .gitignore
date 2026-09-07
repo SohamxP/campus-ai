@@ -8,3 +8,10 @@ apps/mobile/.env
 node_modules
 dist
 .expo
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Next.js local env
+apps/web/.env.local
