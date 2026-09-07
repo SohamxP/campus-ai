@@ -46,3 +46,55 @@ def mark_document_ready(document_id: str):
             )
 
         conn.commit()
+
+
+def list_documents_for_course(course_id: str) -> list[dict]:
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    id,
+                    course_id,
+                    filename,
+                    page_count,
+                    status,
+                    created_at
+                FROM documents
+                WHERE course_id = %s
+                ORDER BY created_at DESC
+                """,
+                (course_id,),
+            )
+
+            rows = cur.fetchall()
+
+    return [
+        {
+            "id": str(row[0]),
+            "course_id": str(row[1]),
+            "filename": row[2],
+            "page_count": row[3],
+            "status": row[4],
+            "created_at": row[5],
+        }
+        for row in rows
+    ]
+
+
+def delete_document(document_id: str) -> bool:
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                DELETE FROM documents
+                WHERE id = %s
+                """,
+                (document_id,),
+            )
+
+            deleted = cur.rowcount > 0
+
+        conn.commit()
+
+    return deleted
