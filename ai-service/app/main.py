@@ -5,6 +5,7 @@ from app.api.courses import router as courses_router
 from app.api.documents import router as documents_router
 from app.api.health import router as health_router
 from app.api.query import router as query_router
+from app.api.study import router as study_router
 
 app = FastAPI(
     title="CampusAI AI Service",
@@ -26,6 +27,7 @@ app.include_router(health_router)
 app.include_router(courses_router)
 app.include_router(documents_router)
 app.include_router(query_router)
+app.include_router(study_router)
 
 
 @app.get("/")
