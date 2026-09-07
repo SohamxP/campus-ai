@@ -4,6 +4,10 @@ from typing import List, Dict
 from pypdf import PdfReader
 
 
+def sanitize_text(text: str) -> str:
+    return text.replace("\x00", "").strip()
+
+
 def extract_pdf_pages(file_bytes: bytes) -> List[Dict]:
     reader = PdfReader(BytesIO(file_bytes))
 
@@ -14,7 +18,7 @@ def extract_pdf_pages(file_bytes: bytes) -> List[Dict]:
 
         pages.append({
             "page_number": index + 1,
-            "text": text.strip(),
+            "text": sanitize_text(text),
         })
 
     return pages
@@ -25,6 +29,8 @@ def chunk_text(
     chunk_size: int = 1200,
     overlap: int = 200,
 ) -> List[str]:
+    text = sanitize_text(text)
+
     if not text:
         return []
 
@@ -33,7 +39,7 @@ def chunk_text(
 
     while start < len(text):
         end = start + chunk_size
-        chunk = text[start:end].strip()
+        chunk = sanitize_text(text[start:end])
 
         if chunk:
             chunks.append(chunk)

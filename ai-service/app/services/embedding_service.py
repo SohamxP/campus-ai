@@ -12,3 +12,19 @@ def create_embedding(text: str) -> list[float]:
     )
 
     return embedding.tolist()
+
+
+def create_embeddings(
+    texts: list[str],
+) -> list[list[float]]:
+    if not texts:
+        return []
+
+    embeddings = model.encode(
+        texts,
+        normalize_embeddings=True,
+        batch_size=32,
+        show_progress_bar=False,
+    )
+
+    return embeddings.tolist()
