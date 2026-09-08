@@ -12,6 +12,7 @@ from app.db.retrieval_repository import (
 )
 from app.services.embedding_service import create_embedding
 from app.services.generation_service import generate_grounded_answer
+from app.core_config import settings
 
 router = APIRouter(prefix="/query", tags=["query"])
 
@@ -109,12 +110,20 @@ def answer(
 
     query_embedding = create_embedding(request.question)
 
-    chunks = retrieve_reranked_chunks(
-        course_id=str(request.course_id),
-        question=request.question,
-        query_embedding=query_embedding,
-        limit=request.limit,
-    )
+    if settings.enable_reranker:
+        chunks = retrieve_reranked_chunks(
+            course_id=str(request.course_id),
+            question=request.question,
+            query_embedding=query_embedding,
+            limit=request.limit,
+        )
+    else:
+        chunks = retrieve_hybrid_chunks(
+            course_id=str(request.course_id),
+            question=request.question,
+            query_embedding=query_embedding,
+            limit=request.limit,
+        )
 
     if not chunks:
         return {
@@ -134,10 +143,17 @@ def answer(
             "document_id": chunk["document_id"],
             "filename": chunk["filename"],
             "page_number": chunk["page_number"],
-            "rrf_score": round(chunk["rrf_score"], 6),
-            "reranker_score": round(
-                chunk["reranker_score"],
+            "rrf_score": round(
+                chunk.get("rrf_score", 0.0),
                 6,
+            ),
+            "reranker_score": (
+                round(
+                    chunk["reranker_score"],
+                    6,
+                )
+                if "reranker_score" in chunk
+                else None
             ),
         }
         for chunk in chunks
