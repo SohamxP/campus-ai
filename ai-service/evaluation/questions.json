@@ -1,42 +1,406 @@
 [
   {
-    "question": "What is a single-layer neural network for binary classification?",
-    "expected_pages": [8, 9]
+    "question": "What does an agent function map percept histories to?",
+    "expected_sources": [
+      {
+        "filename": "chapter02.pdf",
+        "pages": [3]
+      }
+    ]
   },
   {
-    "question": "How does a perceptron produce a binary prediction?",
-    "expected_pages": [8, 9]
+    "question": "What is the difference between an agent function and an agent program?",
+    "expected_sources": [
+      {
+        "filename": "chapter02.pdf",
+        "pages": [3, 26]
+      }
+    ]
   },
   {
-    "question": "Why can't gradient descent be used with the perceptron step function?",
-    "expected_pages": [9]
+    "question": "How does a rational agent choose an action?",
+    "expected_sources": [
+      {
+        "filename": "chapter02.pdf",
+        "pages": [6]
+      }
+    ]
   },
   {
-    "question": "How are perceptron weights updated when a prediction is wrong?",
-    "expected_pages": [9, 10]
+    "question": "Why does being rational not mean being omniscient or always successful?",
+    "expected_sources": [
+      {
+        "filename": "chapter02.pdf",
+        "pages": [6]
+      }
+    ]
   },
   {
-    "question": "What happens when the learning rate is too large during gradient descent?",
-    "expected_pages": [5]
+    "question": "What are the PEAS components for an automated taxi?",
+    "expected_sources": [
+      {
+        "filename": "chapter02.pdf",
+        "pages": [7, 8]
+      },
+      {
+        "filename": "Handout.pdf",
+        "pages": [1]
+      }
+    ]
   },
   {
-    "question": "How do we know gradient descent has converged?",
-    "expected_pages": [3]
+    "question": "What sensors and actuators can an automated taxi use?",
+    "expected_sources": [
+      {
+        "filename": "chapter02.pdf",
+        "pages": [8]
+      }
+    ]
   },
   {
-    "question": "Which activation function is used for binary logistic regression and why?",
-    "expected_pages": [14]
+    "question": "What are the performance measure, environment, actuators, and sensors of an Internet shopping agent?",
+    "expected_sources": [
+      {
+        "filename": "chapter02.pdf",
+        "pages": [9, 10]
+      }
+    ]
   },
   {
-    "question": "What decision rule converts logistic regression probability into class 0 or class 1?",
-    "expected_pages": [14]
+    "question": "How is the real world classified using the standard environment dimensions?",
+    "expected_sources": [
+      {
+        "filename": "chapter02.pdf",
+        "pages": [17]
+      }
+    ]
   },
   {
-    "question": "Why is softmax preferred over sigmoid for multiclass classification?",
-    "expected_pages": [16, 17]
+    "question": "What are the four basic agent types in increasing order of generality?",
+    "expected_sources": [
+      {
+        "filename": "chapter02.pdf",
+        "pages": [18]
+      },
+      {
+        "filename": "Handout.pdf",
+        "pages": [1]
+      }
+    ]
   },
   {
-    "question": "How is the predicted class selected after applying softmax?",
-    "expected_pages": [18]
+    "question": "What additional information does a reflex agent with state maintain compared with a simple reflex agent?",
+    "expected_sources": [
+      {
+        "filename": "chapter02.pdf",
+        "pages": [19, 21]
+      }
+    ]
+  },
+  {
+    "question": "How does a goal-based agent use goals when deciding what action to take?",
+    "expected_sources": [
+      {
+        "filename": "chapter02.pdf",
+        "pages": [23]
+      }
+    ]
+  },
+  {
+    "question": "How does a utility-based agent differ from a goal-based agent?",
+    "expected_sources": [
+      {
+        "filename": "chapter02.pdf",
+        "pages": [23, 24]
+      }
+    ]
+  },
+
+  {
+    "question": "What four items define a single-state problem formulation?",
+    "expected_sources": [
+      {
+        "filename": "chapter03.pdf",
+        "pages": [6]
+      }
+    ]
+  },
+  {
+    "question": "Why must a real-world state space be abstracted for problem solving?",
+    "expected_sources": [
+      {
+        "filename": "chapter03.pdf",
+        "pages": [7]
+      }
+    ]
+  },
+  {
+    "question": "What actions are allowed in the 8-puzzle?",
+    "expected_sources": [
+      {
+        "filename": "chapter03.pdf",
+        "pages": [10, 11, 12]
+      }
+    ]
+  },
+  {
+    "question": "What path cost is used for the 8-puzzle?",
+    "expected_sources": [
+      {
+        "filename": "chapter03.pdf",
+        "pages": [12]
+      }
+    ]
+  },
+  {
+    "question": "How are states, actions, goals, and path cost represented in the robotic assembly problem?",
+    "expected_sources": [
+      {
+        "filename": "chapter03.pdf",
+        "pages": [13]
+      }
+    ]
+  },
+  {
+    "question": "What is the basic idea behind tree search?",
+    "expected_sources": [
+      {
+        "filename": "chapter03.pdf",
+        "pages": [14]
+      }
+    ]
+  },
+  {
+    "question": "What is the difference between a state and a node in a search tree?",
+    "expected_sources": [
+      {
+        "filename": "chapter03.pdf",
+        "pages": [18]
+      }
+    ]
+  },
+  {
+    "question": "Why is detecting repeated states important in search?",
+    "expected_sources": [
+      {
+        "filename": "chapter03.pdf",
+        "pages": [20]
+      }
+    ]
+  },
+  {
+    "question": "How does graph search use a closed set to handle repeated states?",
+    "expected_sources": [
+      {
+        "filename": "chapter03.pdf",
+        "pages": [21]
+      }
+    ]
+  },
+  {
+    "question": "What four criteria are used to evaluate search strategies?",
+    "expected_sources": [
+      {
+        "filename": "chapter03.pdf",
+        "pages": [22]
+      }
+    ]
+  },
+  {
+    "question": "What do b, d, and m represent when analyzing search complexity?",
+    "expected_sources": [
+      {
+        "filename": "chapter03.pdf",
+        "pages": [22]
+      }
+    ]
+  },
+  {
+    "question": "How does breadth-first search choose which node to expand and what kind of fringe does it use?",
+    "expected_sources": [
+      {
+        "filename": "chapter03.pdf",
+        "pages": [24, 25, 26, 27]
+      },
+      {
+        "filename": "Handout.pdf",
+        "pages": [3]
+      }
+    ]
+  },
+  {
+    "question": "When is breadth-first search complete and when is it optimal?",
+    "expected_sources": [
+      {
+        "filename": "chapter03.pdf",
+        "pages": [29, 32]
+      },
+      {
+        "filename": "Handout.pdf",
+        "pages": [3]
+      }
+    ]
+  },
+  {
+    "question": "How does uniform-cost search order its fringe and when is it optimal?",
+    "expected_sources": [
+      {
+        "filename": "chapter03.pdf",
+        "pages": [33]
+      },
+      {
+        "filename": "Handout.pdf",
+        "pages": [3]
+      }
+    ]
+  },
+  {
+    "question": "What are the completeness, time, space, and optimality properties of depth-first search?",
+    "expected_sources": [
+      {
+        "filename": "chapter03.pdf",
+        "pages": [47, 48, 49, 50]
+      }
+    ]
+  },
+
+  {
+    "question": "How are uninformed BFS, DFS, IDS, and UCS distinguished by their fringe ordering?",
+    "expected_sources": [
+      {
+        "filename": "Handout.pdf",
+        "pages": [3]
+      },
+      {
+        "filename": "chapter03.pdf",
+        "pages": [23, 24, 33, 34, 52]
+      }
+    ]
+  },
+  {
+    "question": "How does Greedy search order its fringe?",
+    "expected_sources": [
+      {
+        "filename": "Handout.pdf",
+        "pages": [3]
+      }
+    ]
+  },
+  {
+    "question": "How does A* search order its fringe?",
+    "expected_sources": [
+      {
+        "filename": "Handout.pdf",
+        "pages": [3]
+      }
+    ]
+  },
+  {
+    "question": "Under what conditions is A* complete and optimal according to the handout?",
+    "expected_sources": [
+      {
+        "filename": "Handout.pdf",
+        "pages": [3]
+      }
+    ]
+  },
+  {
+    "question": "How does the minimum remaining values heuristic select a CSP variable?",
+    "expected_sources": [
+      {
+        "filename": "Handout.pdf",
+        "pages": [5]
+      }
+    ]
+  },
+  {
+    "question": "How is the degree heuristic used as a tie breaker with MRV?",
+    "expected_sources": [
+      {
+        "filename": "Handout.pdf",
+        "pages": [5]
+      }
+    ]
+  },
+  {
+    "question": "What is the difference between forward checking and arc-consistency checking?",
+    "expected_sources": [
+      {
+        "filename": "Handout.pdf",
+        "pages": [5]
+      }
+    ]
+  },
+  {
+    "question": "What steps are used to convert a propositional logic expression to CNF?",
+    "expected_sources": [
+      {
+        "filename": "Handout.pdf",
+        "pages": [7]
+      }
+    ]
+  },
+  {
+    "question": "How does proof by forward chaining determine whether a proposition is entailed?",
+    "expected_sources": [
+      {
+        "filename": "Handout.pdf",
+        "pages": [7]
+      }
+    ]
+  },
+  {
+    "question": "How does backward chaining use a goal stack?",
+    "expected_sources": [
+      {
+        "filename": "Handout.pdf",
+        "pages": [7]
+      }
+    ]
+  },
+  {
+    "question": "How does proof by resolution establish that the knowledge base entails alpha?",
+    "expected_sources": [
+      {
+        "filename": "Handout.pdf",
+        "pages": [7]
+      }
+    ]
+  },
+  {
+    "question": "What equivalent probability equations can be used to show that A and B are totally independent?",
+    "expected_sources": [
+      {
+        "filename": "Handout.pdf",
+        "pages": [8]
+      }
+    ]
+  },
+  {
+    "question": "How is conditional independence of A and B given C expressed using probabilities?",
+    "expected_sources": [
+      {
+        "filename": "Handout.pdf",
+        "pages": [8]
+      }
+    ]
+  },
+  {
+    "question": "What quantities are used when calculating information gain for a decision-tree attribute?",
+    "expected_sources": [
+      {
+        "filename": "Handout.pdf",
+        "pages": [9]
+      }
+    ]
+  },
+  {
+    "question": "What range can entropy take for examples belonging to N possible classes?",
+    "expected_sources": [
+      {
+        "filename": "Handout.pdf",
+        "pages": [10]
+      }
+    ]
   }
 ]
